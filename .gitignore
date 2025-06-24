@@ -1,2 +1,5 @@
-td_animations_output2/
-td_animations_output1/
+**/td_animations_output2/
+**/td_animations_output1/
+*.ipynb
+__pycache__/
+.vscode/
