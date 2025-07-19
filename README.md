@@ -1,2 +1,2 @@
-# Tiny-AI-for-Fault-Detection
- 
+_ Code cho version preprocessing bằng envelope spectrum analysis
+_ Import data bằng paper Y1 
