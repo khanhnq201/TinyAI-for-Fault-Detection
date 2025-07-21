@@ -1,0 +1,9 @@
+  - python=3.11
+  - numpy
+  - scipy
+  - scikit-learn
+  - pytorch
+  - torchinfo
+  - matplotlib
+  - seaborn
+  - imbalanced-learn

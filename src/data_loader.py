@@ -157,15 +157,17 @@ def data_import(overlapping_ratio, base_path, sample_length, preprocessing):
     train_files = [
         # --- Normal Data (Label 0) ---
         '97DE', '97FE',   # Normal @ 0HP
-        '98DE', '98FE',  # Normal @ 1HP
+        '98DE', #'98FE',  # Normal @ 1HP
 
         # --- Inner Race (IR) Faults (Label 2) ---
-        '209DE', '209FE',  # DE, IR, 0.021"
+        #'209DE',
+        '209FE',  # DE, IR, 0.021"
         '210DE',          # DE, IR, 0.021"
         '278DE', '278FE',  # FE, IR, 0.007"
         '280DE', '280BA',  # FE, IR, 0.007"
-        '271DE', '271FE', '271BA', # FE, IR, 0.021"
-        '276FE', '276BA',  # FE, IR, 0.014"
+        '271DE', '271FE', #'271BA', # FE, IR, 0.021"
+        #'276FE', 
+        '276BA',  # FE, IR, 0.014"
         '277FE', '277BA',  # FE, IR, 0.014"
         
 
@@ -182,10 +184,10 @@ def data_import(overlapping_ratio, base_path, sample_length, preprocessing):
 
     val_files = [
         # --- Normal Data (Label 0) ---
-        '99DE', '99FE',   # Normal @ 2HP
+        '99DE', #'99FE',   # Normal @ 2HP
 
         # --- Inner Race (IR) Faults (Label 2) ---
-        '211DE',          # DE, IR, 0.021"
+        #'211DE',          # DE, IR, 0.021"
         '279DE',          # FE, IR, 0.007"
         '274FE',          # FE, IR, 0.014"
         '272DE', '272FE', '272BA', # FE, IR, 0.021"
@@ -200,10 +202,10 @@ def data_import(overlapping_ratio, base_path, sample_length, preprocessing):
 
     test_files = [
         # --- Normal Data (Label 0) ---
-        '100DE', '100FE', # Normal @ 3HP
+        '100DE', #'100FE', # Normal @ 3HP
 
         # --- Inner Race (IR) Faults (Label 2) ---
-        '212DE',          # DE, IR, 0.021"
+        #'212DE',          # DE, IR, 0.021"
         #'281DE',          # FE, IR, 0.007"
         '275FE',          # FE, IR, 0.014"
         '273DE', '273FE', '273BA', # FE, IR, 0.021"
@@ -406,3 +408,37 @@ def create_dataloaders(X_train, Y_train,
     print(f"Total samples:      {len(train_loader.dataset) + len(val_loader.dataset) + len(test_loader.dataset):>6}")
 
     return train_loader, val_loader, test_loader
+
+def evaluate_files(model, file_list, config): 
+    model.to(config.DEVICE)
+    model.eval()
+
+    for file in file_list:
+        predictions = []
+        all_labels = []
+
+        X, Y = import_cwru_data([file], config.SAMPLE_LENGTH, 0, config.BASE_PATH)
+        _, X_processed = batch_envelope_analysis(X, 12000)
+        if config.CNN1D_INPUT:
+            X_final = np.reshape(X_processed, (-1, 1, config.SAMPLE_LENGTH))
+        else: 
+            size = int(config.SAMPLE_LENGTH**(1/2))
+            X_final = np.reshape(X_processed, (-1, 1, size, size))
+
+        evaluate_dataset = BearingDataset(X_final, Y)
+        evaluate_loader = DataLoader(evaluate_dataset, batch_size = config.BATCH_SIZE, shuffle = False, num_workers = 0)
+
+        for inputs, labels in evaluate_loader:
+            inputs = inputs.to(config.DEVICE)
+            with torch.no_grad():
+                outputs = model(inputs)
+                _, preds = torch.max(outputs, 1)
+                predictions.extend(preds.cpu().numpy())
+                all_labels.extend(labels.cpu().numpy())
+
+        analyze_data(predictions)
+
+            
+
+
+         
